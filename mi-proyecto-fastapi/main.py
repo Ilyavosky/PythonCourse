@@ -1,10 +1,8 @@
 import zoneinfo
 from datetime import datetime
 from fastapi import FastAPI
-from models import Customer, Transaction, Invoice
-from models import CustomerCreate
-
-
+from models import Customer, Transaction, Invoice, CustomerCreate
+from timezonesDictionary import country_timezones
 
 app = FastAPI()
 
@@ -12,36 +10,7 @@ app = FastAPI()
 async def root():
     return {"message": "Hola Soy Ilya jeje, este es mi primer hola mundo en Python con FastAPI ٩(˘◡˘)۶"}
 
-
-country_timezones = {
-    "CO": "America/Bogota",
-    "MX": "America/Mexico_City",
-    "AR": "America/Argentina/Buenos_Aires",
-    "BR": "America/Sao_Paulo",
-    "PE": "America/Lima",
-    "CL": "America/Santiago",
-    "EC": "America/Guayaquil",
-    "UY": "America/Montevideo",
-    "PA": "America/Panama",
-    "CR": "America/Costa_Rica",
-    "GT": "America/Guatemala",
-    "HN": "America/Tegucigalpa",
-    "NI": "America/Managua",
-    "SV": "America/El_Salvador",
-    "DO": "America/Santo_Domingo",
-    "VE": "America/Caracas",
-    "PY": "America/Asuncion",
-    "BO": "America/La_Paz",
-    "GF": "America/Cayenne",
-    "GP": "America/Guadeloupe",
-    "MQ": "America/Martinique",
-    "RE": "America/Reunion",
-    "AW": "America/Aruba",
-    "BQ": "America/Kralendijk",
-    "CW": "America/Curacao"
-}
-
-
+#Método GET para conocer el país con su zona horaria
 @app.get("/time/{iso_code}")
 async def time(iso_code: str):
     iso = iso_code.upper()
@@ -52,7 +21,8 @@ async def time(iso_code: str):
         tz = zoneinfo.ZoneInfo(timezone_str)
         return {"timezone": timezone_str,
                 "time": datetime.now(tz)}
-        
+
+#Método GET para conocer el país con su zona horaria más legible        
 @app.get("/timeFormat/{iso_code}")
 async def timeformat(iso_code: str):
     iso = iso_code.upper()
@@ -65,6 +35,7 @@ async def timeformat(iso_code: str):
         return {"timezone": timezone_str,
                 "time": date_object}    
 
+#Métood POST para crear a un usuario, recibe información del modelo "CustomerCreate" y responde con el modelo Customer para el ID
 @app.post("/customers", response_model= Customer) #FastAPI nos permite responder con otro modelo, en este caso "Customer"
 async def create_customer(customer_data: CustomerCreate): #CustomerCreate es el modelo que nos permite recibir datos
     return customer_data
