@@ -1,6 +1,10 @@
 import zoneinfo
 from datetime import datetime
 from fastapi import FastAPI
+from models import Customer, Transaction, Invoice
+from models import CustomerCreate
+
+
 
 app = FastAPI()
 
@@ -60,4 +64,15 @@ async def timeformat(iso_code: str):
         date_object  = datetime.strftime(datetime.now(tz), "%Y-%m-%d %H:%M:%S")
         return {"timezone": timezone_str,
                 "time": date_object}    
-    
+
+@app.post("/customers", response_model= Customer) #FastAPI nos permite responder con otro modelo, en este caso "Customer"
+async def create_customer(customer_data: CustomerCreate): #CustomerCreate es el modelo que nos permite recibir datos
+    return customer_data
+
+@app.post("/transactions")
+async def create_customer(transaction_data: Transaction):
+    return transaction_data
+
+@app.post("/invoices")
+async def create_customer(invoice_data: Invoice):
+    return invoice_data
