@@ -4,6 +4,7 @@ from fastapi import FastAPI, status, HTTPException
 from models import Customer, Transaction, Invoice, CustomerCreate
 from timezonesDictionary import country_timezones
 from db import SessionDep, Session, create_all_tables
+from sqlmodel import select
 
 app = FastAPI(lifespan=create_all_tables)
 
@@ -37,32 +38,27 @@ async def timeformat(iso_code: str):
         return {"timezone": timezone_str,
                 "time": date_object}    
 
-#Creamos una lista para simular la db, como esta en memoria, al apagar el servidor se borrá el contenido. Está inicializada en 0
-db_customers: list[Customer] = []
-
 #Métood POST para crear a un usuario, recibe información del modelo "CustomerCreate" y responde con el modelo Customer para el ID
 @app.post("/customers", response_model= Customer) #FastAPI nos permite responder con otro modelo, en este caso "Customer"
 async def create_customer(customer_data: CustomerCreate, session: SessionDep): #CustomerCreate es el modelo que nos permite recibir datos
     customer = Customer.model_validate(customer_data.model_dump())#Se le debe pasar un diccionario para validar
-    # Asumiendo que se hace en la base de datos
-    #leemos cuantos elementos hay en la lista
-    customer.id = len(db_customers)
-    #Agregamos el customer a la lista
-    db_customers.append(customer)
-    return customer #Retornamos al customer
+    session.add(customer)
+    session.commit() #En SQLModel cuando queremos ejeuctuar queries debemos hacer un commit, eso significa que se esta ejecutando en nuestro engine automaticamente
+    session.refresh(customer)
+    return customer
+
 
 @app.get("/customers", response_model= list[Customer])
-async def list_customer():
-    return db_customers
+async def list_customer(session: SessionDep):
+    session.exec(select(Customer)).all()
+    return session.exec(select(Customer)).all()
 
 @app.get("/customers/{id}", response_model=Customer)  # status_code por defecto es 200
-async def get_by_id(id: int):
-    for customer in db_customers:
-        if customer.id == id:
-            return customer
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
-
-
+async def get_by_id(session: SessionDep, id:int):
+    customer = session.get(Customer, id)
+    if not customer:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
+    return customer
 
 @app.post("/transactions")
 async def create_customer(transaction_data: Transaction):
