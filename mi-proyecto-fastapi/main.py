@@ -3,8 +3,10 @@ from datetime import datetime
 from fastapi import FastAPI, status, HTTPException
 from models import Customer, Transaction, Invoice, CustomerCreate
 from timezonesDictionary import country_timezones
+from db import SessionDep, Session, create_all_tables
 
-app = FastAPI()
+app = FastAPI(lifespan=create_all_tables)
+
 
 @app.get("/")
 async def root():
@@ -40,7 +42,7 @@ db_customers: list[Customer] = []
 
 #Métood POST para crear a un usuario, recibe información del modelo "CustomerCreate" y responde con el modelo Customer para el ID
 @app.post("/customers", response_model= Customer) #FastAPI nos permite responder con otro modelo, en este caso "Customer"
-async def create_customer(customer_data: CustomerCreate): #CustomerCreate es el modelo que nos permite recibir datos
+async def create_customer(customer_data: CustomerCreate, session: SessionDep): #CustomerCreate es el modelo que nos permite recibir datos
     customer = Customer.model_validate(customer_data.model_dump())#Se le debe pasar un diccionario para validar
     # Asumiendo que se hace en la base de datos
     #leemos cuantos elementos hay en la lista

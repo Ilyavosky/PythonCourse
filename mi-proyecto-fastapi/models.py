@@ -1,18 +1,19 @@
 from pydantic import BaseModel, EmailStr, Field
+from sqlmodel import SQLModel, Field
 
 #Modelo para validar en un endpoint, hereda de BaseModel
-class CustomerBase(BaseModel):
-    name: str
+class CustomerBase(SQLModel):
+    name: str = Field(default= None)
     #Descripción opcional
-    description: str | None
-    email: EmailStr
-    age: int
+    description: str | None = Field(default= None)
+    email: EmailStr = Field(default= None)
+    age: int = Field(default= None)
 
 class CustomerCreate(CustomerBase): #Herencia de la clase CustomerBase
     pass #pass es una instrucción nula que no hace nada cuando se ejecuta
     
-class Customer(CustomerBase):    
-    id: int | None = None
+class Customer(CustomerBase, table = True):    
+    id: int | None = Field(default= None, primary_key= True)
    
     
 class Transaction(BaseModel):
